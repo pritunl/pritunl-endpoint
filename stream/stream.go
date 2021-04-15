@@ -23,6 +23,7 @@ func (s *Stream) Append(typ string, fields map[string]interface{}) {
 	doc := &Doc{
 		Id:        primitive.NewObjectID(),
 		Timestamp: time.Now(),
+		Type:      typ,
 		Fields:    fields,
 	}
 
