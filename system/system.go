@@ -43,9 +43,9 @@ func getMem() (memTotal int, memUsage float64,
 		return
 	}
 
-	memTotal = int(memUsages.Total / 1048576)
+	memTotal = int(memUsages.Total / OneMebibyte)
 	memUsage = memUsages.UsedPercent
-	swapTotal = int(memUsages.SwapTotal / 1048576)
+	swapTotal = int(memUsages.SwapTotal / OneMebibyte)
 	if memUsages.SwapTotal != 0 {
 		swapUsage = 100 * (1 - float64(
 			memUsages.SwapFree)/float64(memUsages.SwapTotal))
@@ -76,7 +76,6 @@ func Handler(stream *stream.Stream) (err error) {
 		"swap_total": swapTotal,
 		"swap_usage": swapUsage,
 	}
-
 	stream.Append("system", fields)
 
 	return
