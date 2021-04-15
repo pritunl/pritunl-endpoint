@@ -16,6 +16,7 @@ type Input struct {
 
 func Run() {
 	strm := stream.New()
+	go strm.Run()
 
 	for {
 		for _, in := range inputs {

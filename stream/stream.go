@@ -1,6 +1,7 @@
 package stream
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/pritunl/mongo-go-driver/bson/primitive"
@@ -35,6 +36,19 @@ func (s *Stream) Append(typ string, fields map[string]interface{}) {
 	}
 
 	s.primary <- doc
+}
+
+func (s *Stream) Run() {
+	for {
+		doc := <-s.primary
+
+		println("***************************************************")
+		println(doc.Id.Hex())
+		fmt.Println(doc.Timestamp)
+		println(doc.Type)
+		fmt.Println(doc.Fields)
+		println("***************************************************")
+	}
 }
 
 func New() (strm *Stream) {
