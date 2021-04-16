@@ -1,7 +1,6 @@
 package stream
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/pritunl/mongo-go-driver/bson/primitive"
@@ -9,24 +8,22 @@ import (
 )
 
 type Stream struct {
-	primary   chan *Doc
-	secondary chan *Doc
+	primary   chan Doc
+	secondary chan Doc
 }
 
-type Doc struct {
-	Id        primitive.ObjectID     `json:"i"`
-	Timestamp time.Time              `json:"t"`
-	Type      string                 `json:"x"`
-	Fields    map[string]interface{} `json:"f"`
+type Doc interface {
+	GetId() primitive.ObjectID
+	SetId(primitive.ObjectID)
+	GetTimestamp() time.Time
+	SetTimestamp(time.Time)
+	GetType() string
+	Print()
 }
 
-func (s *Stream) Append(typ string, fields map[string]interface{}) {
-	doc := &Doc{
-		Id:        primitive.NewObjectID(),
-		Timestamp: time.Now(),
-		Type:      typ,
-		Fields:    fields,
-	}
+func (s *Stream) Append(doc Doc) {
+	doc.SetId(primitive.NewObjectID())
+	doc.SetTimestamp(time.Now())
 
 	if len(s.primary) > 1000 {
 		logrus.WithFields(logrus.Fields{
@@ -42,18 +39,13 @@ func (s *Stream) Run() {
 	for {
 		doc := <-s.primary
 
-		println("***************************************************")
-		println(doc.Id.Hex())
-		fmt.Println(doc.Timestamp)
-		println(doc.Type)
-		fmt.Println(doc.Fields)
-		println("***************************************************")
+		doc.Print()
 	}
 }
 
 func New() (strm *Stream) {
 	return &Stream{
-		primary:   make(chan *Doc, 1024),
-		secondary: make(chan *Doc, 1024),
+		primary:   make(chan Doc, 1024),
+		secondary: make(chan Doc, 1024),
 	}
 }
