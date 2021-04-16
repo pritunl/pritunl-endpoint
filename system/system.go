@@ -69,14 +69,16 @@ func Handler(stream *stream.Stream) (err error) {
 		return
 	}
 
-	fields := map[string]interface{}{
-		"cpu_usage":  cpuUsage,
-		"mem_total":  memTotal,
-		"mem_usage":  memUsage,
-		"swap_total": swapTotal,
-		"swap_usage": swapUsage,
+	doc := &System{
+		Type:      Type,
+		CpuUsage:  cpuUsage,
+		MemTotal:  memTotal,
+		MemUsage:  memUsage,
+		SwapTotal: swapTotal,
+		SwapUsage: swapUsage,
 	}
-	stream.Append("system", fields)
+
+	stream.Append(doc)
 
 	return
 }
