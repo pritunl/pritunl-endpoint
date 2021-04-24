@@ -1,7 +1,6 @@
 package system
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/pritunl/mongo-go-driver/bson/primitive"
@@ -41,18 +40,4 @@ func (d *System) SetTimestamp(timestamp time.Time) {
 
 func (d *System) GetType() string {
 	return d.Type
-}
-
-func (d *System) Print() {
-	fmt.Println("***************************************************")
-	fmt.Println("Id:", d.GetId().String())
-	fmt.Println("Timestamp:", d.GetTimestamp())
-	fmt.Println("Type:", d.GetType())
-
-	fmt.Println("CpuUsage:", d.CpuUsage)
-	fmt.Println("MemTotal:", d.MemTotal)
-	fmt.Println("MemUsage:", d.MemUsage)
-	fmt.Println("SwapTotal:", d.SwapTotal)
-	fmt.Println("SwapUsage:", d.SwapUsage)
-	fmt.Println("***************************************************")
 }
