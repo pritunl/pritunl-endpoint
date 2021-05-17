@@ -5,6 +5,7 @@ const (
 )
 
 var (
-	Development   = false
-	TodoStreamUrl = ""
+	Development = false
+	ConfPath    = "/etc/pritunl-endpoint.json"
+	VarDir      = "/var/lib/pritunl-endpoint"
 )
