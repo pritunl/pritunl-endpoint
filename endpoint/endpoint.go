@@ -19,6 +19,7 @@ import (
 	"github.com/dropbox/godropbox/errors"
 	"github.com/pritunl/pritunl-endpoint/config"
 	"github.com/pritunl/pritunl-endpoint/errortypes"
+	"github.com/pritunl/pritunl-endpoint/nonce"
 	"github.com/pritunl/pritunl-endpoint/utils"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/nacl/box"
@@ -67,14 +68,14 @@ func Register() (err error) {
 		return
 	}
 
-	nonce, err := utils.RandStr(64)
+	regNonce, err := utils.RandStr(64)
 	if err != nil {
 		return
 	}
 
 	regData := &RegisterData{
 		Timestamp: time.Now().Unix(),
-		Nonce:     nonce,
+		Nonce:     regNonce,
 		PublicKey: pubKey,
 	}
 
@@ -160,11 +161,38 @@ func Register() (err error) {
 		return
 	}
 
+	if len(resData.Nonce) < 16 || len(resData.Nonce) > 128 {
+		err = &errortypes.AuthenticationError{
+			errors.New("endpoint: Invalid authentication nonce"),
+		}
+		return
+	}
+
+	if len(resData.PublicKey) < 16 || len(resData.PublicKey) > 512 {
+		err = &errortypes.AuthenticationError{
+			errors.New("endpoint: Invalid public key"),
+		}
+		return
+	}
+
+	timestamp := time.Unix(resData.Timestamp, 0)
+	if utils.SinceAbs(timestamp) > 300*time.Second {
+		err = &errortypes.AuthenticationError{
+			errors.New("endpoint: Authentication timestamp outside window"),
+		}
+		return
+	}
+
 	authString = strings.Join([]string{
 		strconv.FormatInt(resData.Timestamp, 10),
 		resData.Nonce,
 		resData.PublicKey,
 	}, "&")
+
+	err = nonce.Validate(resData.Nonce)
+	if err != nil {
+		return
+	}
 
 	hashFunc = hmac.New(sha512.New, []byte(config.Config.Secret))
 	hashFunc.Write([]byte(authString))
