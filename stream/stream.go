@@ -1,15 +1,23 @@
 package stream
 
 import (
+	"crypto/hmac"
+	"crypto/sha512"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
+	"net/http"
 	"net/url"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/dropbox/godropbox/errors"
 	"github.com/gorilla/websocket"
 	"github.com/pritunl/mongo-go-driver/bson/primitive"
-	"github.com/pritunl/pritunl-endpoint/constants"
+	"github.com/pritunl/pritunl-endpoint/config"
 	"github.com/pritunl/pritunl-endpoint/errortypes"
+	"github.com/pritunl/pritunl-endpoint/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -141,19 +149,59 @@ func WriteDoc(conn *websocket.Conn, doc Doc) (err error) {
 }
 
 func (s *Stream) Conn() (err error) {
-	streamUrl, err := url.Parse(constants.TodoStreamUrl)
+	streamUrl := &url.URL{
+		Scheme: "wss",
+		Host:   config.Config.RemoteHost,
+		Path:   fmt.Sprintf("/endpoint/%s/comm", config.Config.Id),
+	}
+
+	timestamp := time.Now().Unix()
+	timestampStr := strconv.FormatInt(timestamp, 10)
+	nonce, err := utils.RandStr(64)
 	if err != nil {
-		err = &errortypes.ParseError{
-			errors.Wrap(err, "stream: Failed to parse stream URL"),
-		}
 		return
 	}
 
-	conn, _, err := Dialer.Dial(streamUrl.String(), nil)
+	authString := strings.Join([]string{
+		timestampStr,
+		nonce,
+		"communicate",
+	}, "&")
+
+	hashFunc := hmac.New(sha512.New, []byte(config.Config.Secret))
+	hashFunc.Write([]byte(authString))
+	rawSignature := hashFunc.Sum(nil)
+	signature := base64.URLEncoding.EncodeToString(rawSignature)
+
+	header := http.Header{}
+	header.Add("Pritunl-Endpoint-Timestamp", timestampStr)
+	header.Add("Pritunl-Endpoint-Nonce", nonce)
+	header.Add("Pritunl-Endpoint-Signature", signature)
+
+	conn, res, err := Dialer.Dial(streamUrl.String(), header)
 	if err != nil {
-		err = &errortypes.ConnectionError{
-			errors.Wrap(err, "stream: Failed to dial stream"),
+		if res != nil {
+			errData := &errortypes.ErrorData{}
+			e := json.NewDecoder(res.Body).Decode(errData)
+			if e == nil {
+				logrus.WithFields(logrus.Fields{
+					"error_code": errData.Error,
+					"error_msg":  errData.Message,
+				}).Error("endpoint: Communicate error")
+			}
+			err = &errortypes.ConnectionError{
+				errors.Wrapf(
+					err,
+					"stream: Failed to dial stream, status '%d'",
+					res.StatusCode,
+				),
+			}
+		} else {
+			err = &errortypes.ConnectionError{
+				errors.Wrap(err, "stream: Failed to dial stream"),
+			}
 		}
+
 		return
 	}
 	defer conn.Close()
