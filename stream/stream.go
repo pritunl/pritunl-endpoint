@@ -14,7 +14,6 @@ import (
 
 	"github.com/dropbox/godropbox/errors"
 	"github.com/gorilla/websocket"
-	"github.com/pritunl/mongo-go-driver/bson/primitive"
 	"github.com/pritunl/pritunl-endpoint/config"
 	"github.com/pritunl/pritunl-endpoint/errortypes"
 	"github.com/pritunl/pritunl-endpoint/utils"
@@ -46,8 +45,6 @@ type Stream struct {
 }
 
 type Doc interface {
-	GetId() primitive.ObjectID
-	SetId(primitive.ObjectID)
 	GetTimestamp() time.Time
 	SetTimestamp(time.Time)
 	GetType() string
@@ -55,8 +52,7 @@ type Doc interface {
 }
 
 func (s *Stream) Append(doc Doc) {
-	doc.SetId(primitive.NewObjectID())
-	doc.SetTimestamp(time.Now())
+	doc.SetTimestamp(time.Now().UTC())
 
 	if len(s.primary) > primaryBufferSize-100 {
 		s.AppendSecondary(doc)
@@ -123,16 +119,16 @@ func WriteDoc(conn *websocket.Conn, doc Doc) (err error) {
 	w, err := conn.NextWriter(websocket.TextMessage)
 	if err != nil {
 		err = &errortypes.RequestError{
-			errors.Wrap(err, "mhandlers: Failed to get writer"),
+			errors.Wrap(err, "stream: Failed to get writer"),
 		}
 		return
 	}
 	defer w.Close()
 
-	_, err = w.Write([]byte("system:"))
+	_, err = w.Write([]byte(doc.GetType() + ":"))
 	if err != nil {
 		err = &errortypes.WriteError{
-			errors.Wrap(err, "mhandlers: Failed to write prefix"),
+			errors.Wrap(err, "stream: Failed to write prefix"),
 		}
 		return
 	}
