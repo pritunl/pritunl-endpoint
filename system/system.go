@@ -70,7 +70,6 @@ func Handler(stream *stream.Stream) (err error) {
 	}
 
 	doc := &System{
-		Type:      Type,
 		CpuUsage:  cpuUsage,
 		MemTotal:  memTotal,
 		MemUsage:  memUsage,
@@ -86,7 +85,7 @@ func Handler(stream *stream.Stream) (err error) {
 func Register() {
 	in := &input.Input{
 		Name:    "cpu",
-		Rate:    5 * time.Second,
+		Rate:    60 * time.Second,
 		Handler: Handler,
 	}
 
