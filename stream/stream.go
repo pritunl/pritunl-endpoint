@@ -1,6 +1,7 @@
 package stream
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha512"
 	"encoding/base64"
@@ -18,6 +19,7 @@ import (
 	"github.com/pritunl/pritunl-endpoint/errortypes"
 	"github.com/pritunl/pritunl-endpoint/utils"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/nacl/box"
 )
 
 var (
@@ -42,13 +44,38 @@ type Stream struct {
 	writingTimestamp time.Time
 	writingPresent   chan Doc
 	writingPast      chan Doc
+	clientPrivKey    [32]byte
+	serverPubKey     [32]byte
 }
 
 type Doc interface {
 	GetTimestamp() time.Time
 	SetTimestamp(time.Time)
 	GetType() string
-	Print()
+}
+
+func (s *Stream) Init() (err error) {
+	clientPrivKey, err := base64.StdEncoding.DecodeString(
+		config.Config.PrivateKey)
+	if err != nil {
+		err = &errortypes.ParseError{
+			errors.Wrap(err, "stream: Failed to decode client private key"),
+		}
+		return
+	}
+	copy(s.clientPrivKey[:], clientPrivKey)
+
+	serverPubKey, err := base64.StdEncoding.DecodeString(
+		config.Config.ServerPublicKey)
+	if err != nil {
+		err = &errortypes.ParseError{
+			errors.Wrap(err, "stream: Failed to decode server public key"),
+		}
+		return
+	}
+	copy(s.serverPubKey[:], serverPubKey)
+
+	return
 }
 
 func (s *Stream) Append(doc Doc) {
@@ -115,7 +142,7 @@ func (s *Stream) RecoverBuffer() {
 	s.writingPresent = make(chan Doc, writingBufferSize)
 }
 
-func WriteDoc(conn *websocket.Conn, doc Doc) (err error) {
+func (s *Stream) WriteDoc(conn *websocket.Conn, doc Doc) (err error) {
 	w, err := conn.NextWriter(websocket.TextMessage)
 	if err != nil {
 		err = &errortypes.RequestError{
@@ -125,18 +152,30 @@ func WriteDoc(conn *websocket.Conn, doc Doc) (err error) {
 	}
 	defer w.Close()
 
-	_, err = w.Write([]byte(doc.GetType() + ":"))
+	msg := &bytes.Buffer{}
+	msg.Write([]byte(doc.GetType() + ":"))
+	err = json.NewEncoder(msg).Encode(doc)
 	if err != nil {
 		err = &errortypes.WriteError{
-			errors.Wrap(err, "stream: Failed to write prefix"),
+			errors.Wrap(err, "stream: Failed to write json"),
 		}
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(doc)
+	encMsg, err := utils.RandBytes(24)
+	if err != nil {
+		return
+	}
+	var nonceAr [24]byte
+	copy(nonceAr[:], encMsg)
+
+	encMsg = box.Seal(encMsg, msg.Bytes(), &nonceAr,
+		&s.serverPubKey, &s.clientPrivKey)
+
+	_, err = w.Write(encMsg)
 	if err != nil {
 		err = &errortypes.WriteError{
-			errors.Wrap(err, "mhandlers: Failed to write json"),
+			errors.Wrap(err, "stream: Failed to write prefix"),
 		}
 		return
 	}
@@ -248,7 +287,7 @@ func (s *Stream) Conn() (err error) {
 				if err != nil {
 					err = &errortypes.RequestError{
 						errors.Wrap(err,
-							"mhandlers: Failed to set write control"),
+							"stream: Failed to set write control"),
 					}
 					return
 				}
@@ -260,17 +299,17 @@ func (s *Stream) Conn() (err error) {
 				s.AppendSecondary(doc)
 				err = &errortypes.RequestError{
 					errors.Wrap(err,
-						"mhandlers: Failed to set write deadline"),
+						"stream: Failed to set write deadline"),
 				}
 				return
 			}
 
-			err = WriteDoc(conn, doc)
+			err = s.WriteDoc(conn, doc)
 			if err != nil {
 				s.AppendSecondary(doc)
 				err = &errortypes.RequestError{
 					errors.Wrap(err,
-						"mhandlers: Failed to set write json"),
+						"stream: Failed to set write json"),
 				}
 				return
 			}
@@ -283,7 +322,7 @@ func (s *Stream) Conn() (err error) {
 				if err != nil {
 					err = &errortypes.RequestError{
 						errors.Wrap(err,
-							"mhandlers: Failed to set write control"),
+							"stream: Failed to set write control"),
 					}
 					return
 				}
@@ -295,17 +334,17 @@ func (s *Stream) Conn() (err error) {
 				s.AppendSecondary(doc)
 				err = &errortypes.RequestError{
 					errors.Wrap(err,
-						"mhandlers: Failed to set write secondary deadline"),
+						"stream: Failed to set write secondary deadline"),
 				}
 				return
 			}
 
-			err = WriteDoc(conn, doc)
+			err = s.WriteDoc(conn, doc)
 			if err != nil {
 				s.AppendSecondary(doc)
 				err = &errortypes.RequestError{
 					errors.Wrap(err,
-						"mhandlers: Failed to set write secondary json"),
+						"stream: Failed to set write secondary json"),
 				}
 				return
 			}
@@ -315,7 +354,7 @@ func (s *Stream) Conn() (err error) {
 			if err != nil {
 				err = &errortypes.RequestError{
 					errors.Wrap(err,
-						"mhandlers: Failed to set write control"),
+						"stream: Failed to set write control"),
 				}
 				return
 			}
@@ -324,6 +363,8 @@ func (s *Stream) Conn() (err error) {
 }
 
 func (s *Stream) Run() {
+	s.Init()
+
 	for {
 		err := s.Conn()
 		if err != nil {
