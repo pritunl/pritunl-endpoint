@@ -210,6 +210,7 @@ func Register() (err error) {
 
 	config.Config.PublicKey = pubKey
 	config.Config.PrivateKey = privKey
+	config.Config.ServerPublicKey = resData.PublicKey
 
 	err = config.Save()
 	if err != nil {
