@@ -13,12 +13,13 @@ import (
 var Config = &ConfigData{}
 
 type ConfigData struct {
-	loaded     bool   `json:"-"`
-	Id         string `json:"id"`
-	RemoteHost string `json:"remote_host"`
-	Secret     string `json:"secret"`
-	PublicKey  string `json:"public_key"`
-	PrivateKey string `json:"private_key"`
+	loaded          bool   `json:"-"`
+	Id              string `json:"id"`
+	RemoteHost      string `json:"remote_host"`
+	Secret          string `json:"secret"`
+	PublicKey       string `json:"public_key"`
+	PrivateKey      string `json:"private_key"`
+	ServerPublicKey string `json:"server_public_key"`
 }
 
 func (c *ConfigData) Save() (err error) {
