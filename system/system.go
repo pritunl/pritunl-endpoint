@@ -11,7 +11,15 @@ import (
 	"github.com/shirou/gopsutil/v3/mem"
 )
 
-func getCpu() (usage float64, err error) {
+func getCpu() (cores int, usage float64, err error) {
+	cores, err = cpu.Counts(true)
+	if err != nil {
+		err = &errortypes.ParseError{
+			errors.Wrap(err, "system: Failed to get CPU cores"),
+		}
+		return
+	}
+
 	cpuUsages, err := cpu.Percent(0, false)
 	if err != nil {
 		err = &errortypes.ParseError{
@@ -55,7 +63,7 @@ func getMem() (memTotal int, memUsage float64,
 }
 
 func Handler(stream *stream.Stream) (err error) {
-	cpuUsage, err := getCpu()
+	cpuCores, cpuUsage, err := getCpu()
 	if err != nil {
 		return
 	}
@@ -70,6 +78,7 @@ func Handler(stream *stream.Stream) (err error) {
 	}
 
 	doc := &System{
+		CpuCores:  cpuCores,
 		CpuUsage:  cpuUsage,
 		MemTotal:  memTotal,
 		MemUsage:  memUsage,

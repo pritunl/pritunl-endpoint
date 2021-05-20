@@ -11,6 +11,7 @@ const (
 type System struct {
 	Timestamp time.Time `json:"t"`
 
+	CpuCores  int     `json:"cc"`
 	CpuUsage  float64 `json:"cu"`
 	MemTotal  int     `json:"mt"`
 	MemUsage  float64 `json:"mu"`
@@ -27,5 +28,5 @@ func (d *System) SetTimestamp(timestamp time.Time) {
 }
 
 func (d *System) GetType() string {
-	return "system"
+	return Type
 }
