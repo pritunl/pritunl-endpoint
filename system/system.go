@@ -1,12 +1,14 @@
 package system
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/dropbox/godropbox/errors"
 	"github.com/pritunl/pritunl-endpoint/errortypes"
 	"github.com/pritunl/pritunl-endpoint/input"
 	"github.com/pritunl/pritunl-endpoint/stream"
+	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/mem"
 )
@@ -77,7 +79,20 @@ func Handler(stream *stream.Stream) (err error) {
 		return
 	}
 
+	info, err := host.Info()
+	if err != nil {
+		err = &errortypes.ReadError{
+			errors.Wrap(err, "system: Failed to get host info"),
+		}
+		return
+	}
+
 	doc := &System{
+		Hostname:       info.Hostname,
+		Uptime:         info.Uptime,
+		Virtualization: info.VirtualizationSystem,
+		Platform: fmt.Sprintf("%s-%s-%s", info.OS,
+			info.Platform, info.PlatformVersion),
 		CpuCores:  cpuCores,
 		CpuUsage:  cpuUsage,
 		MemTotal:  memTotal,
