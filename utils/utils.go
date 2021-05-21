@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"github.com/dropbox/godropbox/errors"
 	"github.com/pritunl/pritunl-endpoint/constants"
@@ -117,5 +118,13 @@ func GetLogPath2() (pth string) {
 		panic("profile: Not implemented")
 	}
 
+	return
+}
+
+func SinceAbs(t time.Time) (s time.Duration) {
+	s = time.Since(t)
+	if s < 0 {
+		s = s * -1
+	}
 	return
 }
