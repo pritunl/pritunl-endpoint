@@ -88,6 +88,33 @@ func RandBytes(size int) (bytes []byte, err error) {
 	return
 }
 
+func RandFloat(min, max float64) float64 {
+	return mathrand.Float64() * (max - min) + min
+}
+
+func RandFloatData(cur, min, lower, upper, max, step float64) float64 {
+	// 10, 20, 80, 90
+
+	lowerMid := min + ((lower - min) / 2)
+	upperMid := max - ((max - upper) / 2)
+
+	if cur <= min {
+		return cur + RandFloat(0, 2 * step)
+	} else if cur < lower {
+		return cur + RandFloat(-0.5 * step, 1.5 * step)
+	} else if cur < lowerMid {
+		return cur + RandFloat(-0.75 * step, 1.25 * step)
+	} else if cur > upper {
+		return cur + RandFloat(-1.5 * step, 0.5 * step)
+	} else if cur > upperMid {
+		return cur + RandFloat(-1.25 * step, 0.75 * step)
+	} else if cur >= max {
+		return cur + RandFloat(-2 * step, 0)
+	} else {
+		return cur + RandFloat(-1 * step, 1 * step)
+	}
+}
+
 func init() {
 	n, err := rand.Int(rand.Reader, big.NewInt(9223372036854775806))
 	if err != nil {
