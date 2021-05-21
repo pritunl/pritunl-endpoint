@@ -11,12 +11,17 @@ const (
 type System struct {
 	Timestamp time.Time `json:"t"`
 
-	CpuCores  int     `json:"cc"`
-	CpuUsage  float64 `json:"cu"`
-	MemTotal  int     `json:"mt"`
-	MemUsage  float64 `json:"mu"`
-	SwapTotal int     `json:"st"`
-	SwapUsage float64 `json:"su"`
+	Hostname       string  `json:"h"`
+	Uptime         uint64  `json:"u"`
+	Virtualization string  `json:"v"`
+	Platform       string  `json:"p"`
+	Processes      uint64  `json:"pc"`
+	CpuCores       int     `json:"cc"`
+	CpuUsage       float64 `json:"cu"`
+	MemTotal       int     `json:"mt"`
+	MemUsage       float64 `json:"mu"`
+	SwapTotal      int     `json:"st"`
+	SwapUsage      float64 `json:"su"`
 }
 
 func (d *System) GetTimestamp() time.Time {
