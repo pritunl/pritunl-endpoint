@@ -12,6 +12,10 @@ import (
 
 var Config = &ConfigData{}
 
+type Disk struct {
+	Ignores []string `json:"ignores"`
+}
+
 type ConfigData struct {
 	loaded          bool   `json:"-"`
 	Id              string `json:"id"`
@@ -20,6 +24,7 @@ type ConfigData struct {
 	PublicKey       string `json:"public_key"`
 	PrivateKey      string `json:"private_key"`
 	ServerPublicKey string `json:"server_public_key"`
+	Disk            Disk   `json:"disk"`
 }
 
 func (c *ConfigData) Save() (err error) {
