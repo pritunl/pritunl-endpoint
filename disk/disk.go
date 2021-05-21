@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	ignoreDefault = []string{
+	ignoreTypesDefault = []string{
 		"devtmpfs",
 		"devfs",
 		"overlay",
@@ -23,15 +23,26 @@ var (
 )
 
 func Handler(stream *stream.Stream) (err error) {
-	ignores := ignoreDefault
-	confIgnores := config.Config.Disk.Ignores
-	if confIgnores != nil {
-		ignores = confIgnores
+	ignoreTypes := ignoreTypesDefault
+	confIgnoreTypes := config.Config.Disk.IgnoreTypes
+	if confIgnoreTypes != nil {
+		ignoreTypes = confIgnoreTypes
 	}
 
-	ignoresSet := set.NewSet()
-	for _, ignore := range ignores {
-		ignoresSet.Add(ignore)
+	ignoreTypesSet := set.NewSet()
+	for _, ignoreType := range ignoreTypes {
+		ignoreTypesSet.Add(ignoreType)
+	}
+
+	ignorePaths := []string{}
+	confIgnorePaths := config.Config.Disk.IgnorePaths
+	if confIgnorePaths != nil {
+		ignorePaths = confIgnorePaths
+	}
+
+	ignorePathsSet := set.NewSet()
+	for _, ignoreType := range ignorePaths {
+		ignorePathsSet.Add(ignoreType)
 	}
 
 	parts, err := disk.Partitions(false)
@@ -44,7 +55,9 @@ func Handler(stream *stream.Stream) (err error) {
 
 	mountpoints := []string{}
 	for _, part := range parts {
-		if ignoresSet.Contains(part.Fstype) {
+		if ignoreTypesSet.Contains(part.Fstype) ||
+			ignorePathsSet.Contains(part.Mountpoint) {
+
 			continue
 		}
 

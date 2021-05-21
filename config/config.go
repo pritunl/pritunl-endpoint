@@ -13,7 +13,8 @@ import (
 var Config = &ConfigData{}
 
 type Disk struct {
-	Ignores []string `json:"ignores"`
+	IgnorePaths []string `json:"ignore_paths"`
+	IgnoreTypes []string `json:"ignore_types"`
 }
 
 type ConfigData struct {
