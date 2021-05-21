@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/pritunl/pritunl-endpoint/config"
+	"github.com/pritunl/pritunl-endpoint/disk"
 	"github.com/pritunl/pritunl-endpoint/endpoint"
 	"github.com/pritunl/pritunl-endpoint/input"
 	"github.com/pritunl/pritunl-endpoint/load"
@@ -24,5 +25,6 @@ func main() {
 
 	system.Register()
 	load.Register()
+	disk.Register()
 	input.Run()
 }
