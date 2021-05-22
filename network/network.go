@@ -10,6 +10,10 @@ import (
 	"github.com/shirou/gopsutil/net"
 )
 
+var (
+	prev map[string]net.IOCountersStat
+)
+
 func Handler(stream *stream.Stream) (err error) {
 	stats, err := net.IOCounters(true)
 	if err != nil {
@@ -19,27 +23,38 @@ func Handler(stream *stream.Stream) (err error) {
 		return
 	}
 
+	statsMap := map[string]net.IOCountersStat{}
+
 	doc := &Network{
 		Interfaces: []*Interface{},
 	}
 
 	for _, stat := range stats {
-		doc.Interfaces = append(doc.Interfaces, &Interface{
-			Name:        stat.Name,
-			BytesSent:   stat.BytesSent,
-			BytesRecv:   stat.BytesRecv,
-			PacketsSent: stat.PacketsSent,
-			PacketsRecv: stat.PacketsRecv,
-			ErrorsSent:  stat.Errout,
-			ErrorsRecv:  stat.Errin,
-			DropsSent:   stat.Dropout,
-			DropsRecv:   stat.Dropin,
-			FifoSent:    stat.Fifoout,
-			FifoRecv:    stat.Fifoin,
-		})
+		statsMap[stat.Name] = stat
+
+		prevStat, ok := prev[stat.Name]
+		if ok {
+			doc.Interfaces = append(doc.Interfaces, &Interface{
+				Name:        stat.Name,
+				BytesSent:   stat.BytesSent - prevStat.BytesSent,
+				BytesRecv:   stat.BytesRecv - prevStat.BytesRecv,
+				PacketsSent: stat.PacketsSent - prevStat.PacketsSent,
+				PacketsRecv: stat.PacketsRecv - prevStat.PacketsRecv,
+				ErrorsSent:  stat.Errout - prevStat.Errout,
+				ErrorsRecv:  stat.Errin - prevStat.Errin,
+				DropsSent:   stat.Dropout - prevStat.Dropout,
+				DropsRecv:   stat.Dropin - prevStat.Dropin,
+				FifoSent:    stat.Fifoout - prevStat.Fifoout,
+				FifoRecv:    stat.Fifoin - prevStat.Fifoin,
+			})
+		}
 	}
 
-	stream.Append(doc)
+	prev = statsMap
+
+	if len(doc.Interfaces) != 0 {
+		stream.Append(doc)
+	}
 
 	return
 }
