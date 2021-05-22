@@ -7,6 +7,7 @@ import (
 	"github.com/pritunl/pritunl-endpoint/input"
 	"github.com/pritunl/pritunl-endpoint/load"
 	"github.com/pritunl/pritunl-endpoint/logger"
+	"github.com/pritunl/pritunl-endpoint/network"
 	"github.com/pritunl/pritunl-endpoint/system"
 )
 
@@ -26,5 +27,7 @@ func main() {
 	system.Register()
 	load.Register()
 	disk.Register()
+	network.Register()
+
 	input.Run()
 }
