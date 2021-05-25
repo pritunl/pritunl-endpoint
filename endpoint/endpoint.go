@@ -223,7 +223,7 @@ func Register() (err error) {
 func Init() (err error) {
 	if config.Config.Id == "" {
 		err = &errortypes.ParseError{
-			errors.New("endpoint: Config missing ID"),
+			errors.New("endpoint: Endpoint is not registered"),
 		}
 		return
 	}
