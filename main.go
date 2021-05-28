@@ -28,6 +28,10 @@ Commands:
 func main() {
 	defer time.Sleep(500 * time.Millisecond)
 
+	flag.Usage = func() {
+		fmt.Println(help)
+	}
+
 	flag.Parse()
 
 	logger.Init()
