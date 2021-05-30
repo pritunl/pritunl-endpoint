@@ -108,7 +108,7 @@ func Handler(stream *stream.Stream) (err error) {
 
 func Register() {
 	in := &input.Input{
-		Name:    "cpu",
+		Name:    Type,
 		Rate:    60 * time.Second,
 		Handler: Handler,
 	}
