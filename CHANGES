@@ -1,7 +1,8 @@
 pritunl-endpoint changelog
 ==========================
 
-<%= version %>
+Version 1.0.2095.36 2021-08-19
+------------------------------
 
 Add diskio
 
