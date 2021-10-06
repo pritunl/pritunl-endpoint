@@ -31,6 +31,7 @@ func Handler(stream *stream.Stream) (err error) {
 		Disks: []*Disk{},
 	}
 
+	ignore := false
 	for _, stat := range stats {
 		if strings.HasPrefix(stat.Name, "dm") {
 			continue
