@@ -29,30 +29,45 @@ func Handler(stream *stream.Stream) (err error) {
 		Interfaces: []*Interface{},
 	}
 
+	ignore := false
 	for _, stat := range stats {
 		statsMap[stat.Name] = stat
 
 		prevStat, ok := prev[stat.Name]
 		if ok {
-			doc.Interfaces = append(doc.Interfaces, &Interface{
-				Name:        stat.Name,
-				BytesSent:   stat.BytesSent - prevStat.BytesSent,
-				BytesRecv:   stat.BytesRecv - prevStat.BytesRecv,
-				PacketsSent: stat.PacketsSent - prevStat.PacketsSent,
-				PacketsRecv: stat.PacketsRecv - prevStat.PacketsRecv,
-				ErrorsSent:  stat.Errout - prevStat.Errout,
-				ErrorsRecv:  stat.Errin - prevStat.Errin,
-				DropsSent:   stat.Dropout - prevStat.Dropout,
-				DropsRecv:   stat.Dropin - prevStat.Dropin,
-				FifoSent:    stat.Fifoout - prevStat.Fifoout,
-				FifoRecv:    stat.Fifoin - prevStat.Fifoin,
-			})
+			if stat.BytesSent < prevStat.BytesSent ||
+				stat.BytesRecv < prevStat.BytesRecv ||
+				stat.PacketsSent < prevStat.PacketsSent ||
+				stat.PacketsRecv < prevStat.PacketsRecv ||
+				stat.Errout < prevStat.Errout ||
+				stat.Errin < prevStat.Errin ||
+				stat.Dropout < prevStat.Dropout ||
+				stat.Dropin < prevStat.Dropin ||
+				stat.Fifoout < prevStat.Fifoout ||
+				stat.Fifoin < prevStat.Fifoin {
+
+				ignore = true
+			} else {
+				doc.Interfaces = append(doc.Interfaces, &Interface{
+					Name:        stat.Name,
+					BytesSent:   stat.BytesSent - prevStat.BytesSent,
+					BytesRecv:   stat.BytesRecv - prevStat.BytesRecv,
+					PacketsSent: stat.PacketsSent - prevStat.PacketsSent,
+					PacketsRecv: stat.PacketsRecv - prevStat.PacketsRecv,
+					ErrorsSent:  stat.Errout - prevStat.Errout,
+					ErrorsRecv:  stat.Errin - prevStat.Errin,
+					DropsSent:   stat.Dropout - prevStat.Dropout,
+					DropsRecv:   stat.Dropin - prevStat.Dropin,
+					FifoSent:    stat.Fifoout - prevStat.Fifoout,
+					FifoRecv:    stat.Fifoin - prevStat.Fifoin,
+				})
+			}
 		}
 	}
 
 	prev = statsMap
 
-	if len(doc.Interfaces) != 0 {
+	if !ignore && len(doc.Interfaces) != 0 {
 		stream.Append(doc)
 	}
 
