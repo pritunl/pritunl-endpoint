@@ -54,24 +54,33 @@ func Handler(stream *stream.Stream) (err error) {
 
 		prevStat, ok := prev[stat.Name]
 		if ok {
-			dsk := &Disk{
-				Name:       stat.Name,
-				BytesRead:  stat.ReadBytes - prevStat.ReadBytes,
-				BytesWrite: stat.WriteBytes - prevStat.WriteBytes,
-				CountRead:  stat.ReadCount - prevStat.ReadCount,
-				CountWrite: stat.WriteCount - prevStat.WriteCount,
-				TimeRead:   stat.ReadTime - prevStat.ReadTime,
-				TimeWrite:  stat.WriteTime - prevStat.WriteTime,
-				TimeIo:     stat.IoTime - prevStat.IoTime,
-			}
+			if stat.ReadBytes < prevStat.ReadBytes ||
+				stat.WriteBytes < prevStat.WriteBytes ||
+				stat.ReadCount < prevStat.ReadCount ||
+				stat.WriteCount < prevStat.WriteCount ||
+				stat.ReadTime < prevStat.ReadTime ||
+				stat.WriteTime < prevStat.WriteTime ||
+				stat.IoTime < prevStat.IoTime {
 
-			doc.Disks = append(doc.Disks, dsk)
+				ignore = true
+			} else {
+				doc.Disks = append(doc.Disks, &Disk{
+					Name:       stat.Name,
+					BytesRead:  stat.ReadBytes - prevStat.ReadBytes,
+					BytesWrite: stat.WriteBytes - prevStat.WriteBytes,
+					CountRead:  stat.ReadCount - prevStat.ReadCount,
+					CountWrite: stat.WriteCount - prevStat.WriteCount,
+					TimeRead:   stat.ReadTime - prevStat.ReadTime,
+					TimeWrite:  stat.WriteTime - prevStat.WriteTime,
+					TimeIo:     stat.IoTime - prevStat.IoTime,
+				})
+			}
 		}
 	}
 
 	prev = statsMap
 
-	if len(doc.Disks) != 0 {
+	if !ignore && len(doc.Disks) != 0 {
 		stream.Append(doc)
 	}
 
