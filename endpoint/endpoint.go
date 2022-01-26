@@ -146,7 +146,7 @@ func Register() (err error) {
 		}
 
 		err = &errortypes.RequestError{
-			errors.Wrapf(err, "endpoint: Bad status %n code from server",
+			errors.Wrapf(err, "endpoint: Bad status %d code from server",
 				res.StatusCode),
 		}
 		return
