@@ -1,7 +1,8 @@
 pritunl-endpoint changelog
 ==========================
 
-<%= version %>
+Version 1.0.2255.3 2022-01-26
+-----------------------------
 
 Add hugepages status
 
