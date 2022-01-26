@@ -7,7 +7,7 @@ import (
 	"github.com/pritunl/pritunl-endpoint/errortypes"
 	"github.com/pritunl/pritunl-endpoint/input"
 	"github.com/pritunl/pritunl-endpoint/stream"
-	"github.com/shirou/gopsutil/net"
+	"github.com/shirou/gopsutil/v3/net"
 )
 
 var (
