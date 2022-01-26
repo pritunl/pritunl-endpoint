@@ -20,6 +20,8 @@ type System struct {
 	CpuUsage       float64 `json:"cu"`
 	MemTotal       int     `json:"mt"`
 	MemUsage       float64 `json:"mu"`
+	HugeTotal      int     `json:"ht"`
+	HugeUsage      float64 `json:"hu"`
 	SwapTotal      int     `json:"st"`
 	SwapUsage      float64 `json:"su"`
 }
