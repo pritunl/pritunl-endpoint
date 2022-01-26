@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"bufio"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/dropbox/godropbox/errors"
 	"github.com/pritunl/pritunl-endpoint/errortypes"
@@ -155,6 +157,37 @@ func ContainsDir(pth string) (hasDir bool, err error) {
 			hasDir = true
 			return
 		}
+	}
+
+	return
+}
+
+func ReadLines(path string) (lines []string, err error) {
+	file, err := os.Open(path)
+	if err != nil {
+		err = &errortypes.ReadError{
+			errors.Wrapf(err, "utils: Failed to open '%s'", path),
+		}
+		return
+	}
+	defer func() {
+		err = file.Close()
+		if err != nil {
+			err = &errortypes.ReadError{
+				errors.Wrapf(err, "utils: Failed to read '%s'", path),
+			}
+			return
+		}
+	}()
+
+	lines = []string{}
+	reader := bufio.NewReader(file)
+	for {
+		line, e := reader.ReadString('\n')
+		if e != nil {
+			break
+		}
+		lines = append(lines, strings.Trim(line, "\n"))
 	}
 
 	return
