@@ -1,6 +1,10 @@
 pritunl-endpoint changelog
 ==========================
 
+<%= version %>
+
+Add hugepages status
+
 Version 1.0.2143.33 2021-10-06
 ------------------------------
 
