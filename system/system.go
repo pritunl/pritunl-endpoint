@@ -8,9 +8,9 @@ import (
 	"github.com/pritunl/pritunl-endpoint/errortypes"
 	"github.com/pritunl/pritunl-endpoint/input"
 	"github.com/pritunl/pritunl-endpoint/stream"
-	"github.com/shirou/gopsutil/host"
+	"github.com/pritunl/pritunl-endpoint/utils"
 	"github.com/shirou/gopsutil/v3/cpu"
-	"github.com/shirou/gopsutil/v3/mem"
+	"github.com/shirou/gopsutil/v3/host"
 )
 
 func getCpu() (cores int, usage float64, err error) {
@@ -43,9 +43,10 @@ func getCpu() (cores int, usage float64, err error) {
 }
 
 func getMem() (memTotal int, memUsage float64,
-	swapTotal int, swapUsage float64, err error) {
+	hugeTotal int, hugeUsage float64, swapTotal int, swapUsage float64,
+	err error) {
 
-	memUsages, err := mem.VirtualMemory()
+	m, err := utils.GetMemInfo()
 	if err != nil {
 		err = &errortypes.ParseError{
 			errors.Wrap(err, "system: Failed to get memory usage"),
@@ -53,13 +54,16 @@ func getMem() (memTotal int, memUsage float64,
 		return
 	}
 
-	memTotal = int(memUsages.Total / OneMebibyte)
-	memUsage = memUsages.UsedPercent
-	swapTotal = int(memUsages.SwapTotal / OneMebibyte)
-	if memUsages.SwapTotal != 0 {
+	memTotal = int(m.Total / 1024)
+	memUsage = m.UsedPercent
+	swapTotal = int(m.SwapTotal / 1024)
+	if m.SwapTotal != 0 {
 		swapUsage = 100 * (1 - float64(
-			memUsages.SwapFree)/float64(memUsages.SwapTotal))
+			m.SwapFree)/float64(m.SwapTotal))
 	}
+
+	hugeTotal = int(m.HugePagesTotal * m.HugePageSize / 1024)
+	hugeUsage = m.HugePagesUsedPercent
 
 	return
 }
@@ -70,7 +74,7 @@ func Handler(stream *stream.Stream) (err error) {
 		return
 	}
 
-	memTotal, memUsage, swapTotal, swapUsage, err := getMem()
+	mTotal, mUsage, hTotal, hUsage, sTotal, sUsage, err := getMem()
 	if err != nil {
 		return
 	}
@@ -95,10 +99,12 @@ func Handler(stream *stream.Stream) (err error) {
 			info.Platform, info.PlatformVersion),
 		CpuCores:  cpuCores,
 		CpuUsage:  cpuUsage,
-		MemTotal:  memTotal,
-		MemUsage:  memUsage,
-		SwapTotal: swapTotal,
-		SwapUsage: swapUsage,
+		MemTotal:  mTotal,
+		MemUsage:  mUsage,
+		HugeTotal: hTotal,
+		HugeUsage: hUsage,
+		SwapTotal: sTotal,
+		SwapUsage: sUsage,
 	}
 
 	stream.Append(doc)
