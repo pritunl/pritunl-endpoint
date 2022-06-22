@@ -4,6 +4,7 @@ pritunl-endpoint changelog
 <%= version %>
 
 Update distribution support
+Update libraries
 
 Version 1.0.2255.3 2022-01-26
 -----------------------------
