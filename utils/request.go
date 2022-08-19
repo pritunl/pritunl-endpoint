@@ -5,9 +5,6 @@ import (
 	"io"
 	"net/http"
 	"strings"
-
-	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/render"
 )
 
 type NopCloser struct {
@@ -79,23 +76,6 @@ func FormatHostPort(hostname string, port int) string {
 
 func GetStatusMessage(code int) string {
 	return fmt.Sprintf("%d %s", code, http.StatusText(code))
-}
-
-func AbortWithStatus(c *gin.Context, code int) {
-	r := render.String{
-		Format: GetStatusMessage(code),
-	}
-
-	c.Status(code)
-	r.WriteContentType(c.Writer)
-	c.Writer.WriteHeaderNow()
-	r.Render(c.Writer)
-	c.Abort()
-}
-
-func AbortWithError(c *gin.Context, code int, err error) {
-	AbortWithStatus(c, code)
-	c.Error(err)
 }
 
 func WriteStatus(w http.ResponseWriter, code int) {
