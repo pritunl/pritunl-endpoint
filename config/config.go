@@ -18,14 +18,14 @@ type Disk struct {
 }
 
 type ConfigData struct {
-	loaded          bool   `json:"-"`
-	Id              string `json:"id"`
-	RemoteHost      string `json:"remote_host"`
-	Secret          string `json:"secret"`
-	PublicKey       string `json:"public_key"`
-	PrivateKey      string `json:"private_key"`
-	ServerPublicKey string `json:"server_public_key"`
-	Disk            Disk   `json:"disk"`
+	loaded          bool     `json:"-"`
+	Id              string   `json:"id"`
+	RemoteHosts     []string `json:"remote_hosts"`
+	Secret          string   `json:"secret"`
+	PublicKey       string   `json:"public_key"`
+	PrivateKey      string   `json:"private_key"`
+	ServerPublicKey string   `json:"server_public_key"`
+	Disk            Disk     `json:"disk"`
 }
 
 func (c *ConfigData) Save() (err error) {
