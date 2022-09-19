@@ -41,7 +41,7 @@ func RegisterCmd() (err error) {
 			return
 		}
 
-		config.Config.RemoteHost = u.Host
+		config.Config.RemoteHosts = []string{u.Host}
 		config.Config.Id = registerKeys[0]
 		config.Config.Secret = registerKeys[1]
 		config.Config.PublicKey = ""
@@ -95,7 +95,7 @@ func RegisterCmd() (err error) {
 			return
 		}
 
-		config.Config.RemoteHost = hostname
+		config.Config.RemoteHosts = []string{hostname}
 		config.Config.Id = registerKeys[0]
 		config.Config.Secret = registerKeys[1]
 		config.Config.PublicKey = ""
@@ -110,7 +110,7 @@ func RegisterCmd() (err error) {
 
 	logrus.WithFields(logrus.Fields{
 		"endpoint_id":       config.Config.Id,
-		"pritunl_zero_host": config.Config.RemoteHost,
+		"pritunl_zero_host": config.Config.RemoteHosts[0],
 	}).Info("endpoint: Registration key saved")
 
 	return

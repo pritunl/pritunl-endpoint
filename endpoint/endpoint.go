@@ -100,7 +100,7 @@ func Register() (err error) {
 
 	u := &url.URL{
 		Scheme: "https",
-		Host:   config.Config.RemoteHost,
+		Host:   config.Config.RemoteHosts[0],
 		Path:   fmt.Sprintf("/endpoint/%s/register", config.Config.Id),
 	}
 
@@ -227,7 +227,9 @@ func Init() (err error) {
 		}
 		return
 	}
-	if config.Config.RemoteHost == "" {
+	if config.Config.RemoteHosts == nil ||
+		len(config.Config.RemoteHosts) == 0 {
+
 		err = &errortypes.ParseError{
 			errors.New("endpoint: Config missing remote host"),
 		}
