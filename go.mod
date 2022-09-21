@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/dropbox/godropbox v0.0.0-20200228041828-52ad444d3502
-	github.com/gorilla/websocket v1.4.2
+	github.com/gorilla/websocket v1.5.0
 	github.com/shirou/gopsutil/v3 v3.21.12
 	github.com/sirupsen/logrus v1.8.1
 	golang.org/x/crypto v0.0.0-20220112180741-5e0467b6c7ce
