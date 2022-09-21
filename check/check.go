@@ -18,7 +18,7 @@ type checker struct {
 }
 
 func (c *checker) runCheckHttp(check *stream.Check, target string) (
-	latency int64, shortErr, err error) {
+	latency int, shortErr, err error) {
 
 	timeout := time.Duration(check.Timeout) * time.Second
 
@@ -72,7 +72,7 @@ func (c *checker) runCheckHttp(check *stream.Check, target string) (
 
 	start := time.Now()
 	res, err := client.Do(req)
-	latency = time.Since(start).Milliseconds()
+	latency = int(time.Since(start).Milliseconds())
 	if err != nil {
 		shortErr = err
 		err = &errortypes.RequestError{
@@ -101,7 +101,7 @@ func (c *checker) runCheck(check *stream.Check) (err error) {
 	switch check.Type {
 	case "http":
 		targets := []string{}
-		latencies := []int64{}
+		latencies := []int{}
 		errs := []string{}
 
 		if check.Targets != nil {

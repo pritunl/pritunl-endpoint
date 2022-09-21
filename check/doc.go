@@ -11,9 +11,9 @@ const (
 type Check struct {
 	Timestamp time.Time `json:"t"`
 
-	CheckId string   `json:"i"`
+	CheckId string   `json:"c"`
 	Targets []string `json:"x"`
-	Latency []int64  `json:"l"`
+	Latency []int    `json:"l"`
 	Errors  []string `json:"r"`
 }
 
