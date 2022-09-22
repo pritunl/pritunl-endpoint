@@ -96,10 +96,15 @@ func Handler(stream *stream.Stream) (err error) {
 		return
 	}
 
+	virt := ""
+	if info.VirtualizationRole == "guest" {
+		virt = info.VirtualizationSystem
+	}
+
 	doc := &System{
 		Hostname:       info.Hostname,
 		Uptime:         info.Uptime,
-		Virtualization: info.VirtualizationSystem,
+		Virtualization: virt,
 		Platform: fmt.Sprintf("%s-%s-%s", info.OS,
 			info.Platform, info.PlatformVersion),
 		CpuCores:  cpuCores,
