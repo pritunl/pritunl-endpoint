@@ -79,6 +79,11 @@ func Handler(stream *stream.Stream) (err error) {
 		return
 	}
 
+	mdadm, err := utils.GetMdadmStates()
+	if err != nil {
+		return
+	}
+
 	if cpuUsage == 0 {
 		return
 	}
@@ -105,6 +110,7 @@ func Handler(stream *stream.Stream) (err error) {
 		HugeUsage: hUsage,
 		SwapTotal: sTotal,
 		SwapUsage: sUsage,
+		Mdadm:     mdadm,
 	}
 
 	stream.Append(doc)

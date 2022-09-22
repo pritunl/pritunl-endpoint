@@ -2,6 +2,8 @@ package system
 
 import (
 	"time"
+
+	"github.com/pritunl/pritunl-endpoint/utils"
 )
 
 const (
@@ -11,19 +13,21 @@ const (
 type System struct {
 	Timestamp time.Time `json:"t"`
 
-	Hostname       string  `json:"h"`
-	Uptime         uint64  `json:"u"`
-	Virtualization string  `json:"v"`
-	Platform       string  `json:"p"`
-	Processes      uint64  `json:"pc"`
-	CpuCores       int     `json:"cc"`
-	CpuUsage       float64 `json:"cu"`
-	MemTotal       int     `json:"mt"`
-	MemUsage       float64 `json:"mu"`
-	HugeTotal      int     `json:"ht"`
-	HugeUsage      float64 `json:"hu"`
-	SwapTotal      int     `json:"st"`
-	SwapUsage      float64 `json:"su"`
+	Hostname       string              `json:"h"`
+	Uptime         uint64              `json:"u"`
+	Virtualization string              `json:"v"`
+	Platform       string              `json:"p"`
+	DnfUpdates     int                 `json:"du"`
+	Processes      uint64              `json:"pc"`
+	CpuCores       int                 `json:"cc"`
+	CpuUsage       float64             `json:"cu"`
+	MemTotal       int                 `json:"mt"`
+	MemUsage       float64             `json:"mu"`
+	HugeTotal      int                 `json:"ht"`
+	HugeUsage      float64             `json:"hu"`
+	SwapTotal      int                 `json:"st"`
+	SwapUsage      float64             `json:"su"`
+	Mdadm          []*utils.MdadmState `json:"ra"`
 }
 
 func (d *System) GetTimestamp() time.Time {
