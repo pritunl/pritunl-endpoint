@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/pritunl/pritunl-endpoint/check"
 	"github.com/pritunl/pritunl-endpoint/config"
 	"github.com/pritunl/pritunl-endpoint/constants"
 	"github.com/pritunl/pritunl-endpoint/disk"
 	"github.com/pritunl/pritunl-endpoint/diskio"
 	"github.com/pritunl/pritunl-endpoint/endpoint"
 	"github.com/pritunl/pritunl-endpoint/input"
+	"github.com/pritunl/pritunl-endpoint/kmsg"
 	"github.com/pritunl/pritunl-endpoint/load"
 	"github.com/pritunl/pritunl-endpoint/logger"
 	"github.com/pritunl/pritunl-endpoint/network"
@@ -54,6 +56,8 @@ func main() {
 		disk.Register()
 		diskio.Register()
 		network.Register()
+		kmsg.Register()
+		check.Register()
 
 		input.Run()
 
