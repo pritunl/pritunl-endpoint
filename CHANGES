@@ -4,6 +4,7 @@ pritunl-endpoint changelog
 <%= version %>
 
 Add kmsg
+Add health checks
 Update libraries
 
 Version 1.0.2402.74 2022-06-22
