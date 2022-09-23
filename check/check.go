@@ -109,6 +109,7 @@ func (c *checker) runCheck(check *stream.Check) (err error) {
 				latency, shortErr, checkErr := c.runCheckHttp(check, target)
 				checkErrStr := ""
 				if shortErr != nil {
+					latency = 0
 					checkErrStr = shortErr.Error()
 				}
 				if checkErr != nil {
