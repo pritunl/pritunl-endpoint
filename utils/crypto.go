@@ -14,7 +14,9 @@ import (
 )
 
 var (
-	randRe = regexp.MustCompile("[^a-zA-Z0-9]+")
+	randRe   = regexp.MustCompile("[^a-zA-Z0-9]+")
+	chars    = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	charsLen = len(chars)
 )
 
 func RandStr(n int) (str string, err error) {
@@ -89,7 +91,7 @@ func RandBytes(size int) (bytes []byte, err error) {
 }
 
 func RandFloat(min, max float64) float64 {
-	return mathrand.Float64() * (max - min) + min
+	return mathrand.Float64()*(max-min) + min
 }
 
 func RandFloatData(cur, min, lower, upper, max, step float64) float64 {
@@ -99,20 +101,28 @@ func RandFloatData(cur, min, lower, upper, max, step float64) float64 {
 	upperMid := max - ((max - upper) / 2)
 
 	if cur <= min {
-		return cur + RandFloat(0, 2 * step)
+		return cur + RandFloat(0, 2*step)
 	} else if cur < lower {
-		return cur + RandFloat(-0.5 * step, 1.5 * step)
+		return cur + RandFloat(-0.5*step, 1.5*step)
 	} else if cur < lowerMid {
-		return cur + RandFloat(-0.75 * step, 1.25 * step)
+		return cur + RandFloat(-0.75*step, 1.25*step)
 	} else if cur > upper {
-		return cur + RandFloat(-1.5 * step, 0.5 * step)
+		return cur + RandFloat(-1.5*step, 0.5*step)
 	} else if cur > upperMid {
-		return cur + RandFloat(-1.25 * step, 0.75 * step)
+		return cur + RandFloat(-1.25*step, 0.75*step)
 	} else if cur >= max {
-		return cur + RandFloat(-2 * step, 0)
+		return cur + RandFloat(-2*step, 0)
 	} else {
-		return cur + RandFloat(-1 * step, 1 * step)
+		return cur + RandFloat(-1*step, 1*step)
 	}
+}
+
+func RandStrUnsafe(n int) string {
+	x := make([]rune, n)
+	for i := range x {
+		x[i] = chars[mathrand.Intn(charsLen)]
+	}
+	return string(x)
 }
 
 func init() {

@@ -154,6 +154,29 @@ func ExecOutput(name string, arg ...string) (output string, err error) {
 	return
 }
 
+func ExecOutputCode(name string, arg ...string) (
+	output string, exitCode int, err error) {
+
+	cmd := command.Command(name, arg...)
+	cmd.Stderr = os.Stderr
+
+	outputByt, err := cmd.Output()
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			exitCode = exitErr.ExitCode()
+			err = nil
+		} else {
+			err = &errortypes.ExecError{
+				errors.Wrapf(err, "utils: Failed to exec '%s'", name),
+			}
+			return
+		}
+	}
+	output = string(outputByt)
+
+	return
+}
+
 func ExecOutputLogged(ignores []string, name string, arg ...string) (
 	output string, err error) {
 
