@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/dropbox/godropbox/errors"
+	"github.com/pritunl/pritunl-endpoint/dnf"
 	"github.com/pritunl/pritunl-endpoint/errortypes"
 	"github.com/pritunl/pritunl-endpoint/input"
 	"github.com/pritunl/pritunl-endpoint/stream"
@@ -101,21 +102,30 @@ func Handler(stream *stream.Stream) (err error) {
 		virt = info.VirtualizationSystem
 	}
 
+	dnfCount := 0
+	if dnf.IsDnf() {
+		dnfCount, err = dnf.CheckUpdateCached()
+		if err != nil {
+			return
+		}
+	}
+
 	doc := &System{
 		Hostname:       info.Hostname,
 		Uptime:         info.Uptime,
 		Virtualization: virt,
 		Platform: fmt.Sprintf("%s-%s-%s", info.OS,
 			info.Platform, info.PlatformVersion),
-		CpuCores:  cpuCores,
-		CpuUsage:  cpuUsage,
-		MemTotal:  mTotal,
-		MemUsage:  mUsage,
-		HugeTotal: hTotal,
-		HugeUsage: hUsage,
-		SwapTotal: sTotal,
-		SwapUsage: sUsage,
-		Mdadm:     mdadm,
+		PackageUpdates: dnfCount,
+		CpuCores:       cpuCores,
+		CpuUsage:       cpuUsage,
+		MemTotal:       mTotal,
+		MemUsage:       mUsage,
+		HugeTotal:      hTotal,
+		HugeUsage:      hUsage,
+		SwapTotal:      sTotal,
+		SwapUsage:      sUsage,
+		Mdadm:          mdadm,
 	}
 
 	stream.Append(doc)

@@ -17,7 +17,7 @@ type System struct {
 	Uptime         uint64              `json:"u"`
 	Virtualization string              `json:"v"`
 	Platform       string              `json:"p"`
-	DnfUpdates     int                 `json:"du"`
+	PackageUpdates int                 `json:"pu"`
 	Processes      uint64              `json:"pc"`
 	CpuCores       int                 `json:"cc"`
 	CpuUsage       float64             `json:"cu"`
