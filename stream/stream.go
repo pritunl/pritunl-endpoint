@@ -186,7 +186,7 @@ func (s *Stream) WriteDoc(conn *websocket.Conn, doc Doc) (err error) {
 func (s *Stream) Conn() (err error) {
 	streamUrl := &url.URL{
 		Scheme: "wss",
-		Host:   config.Config.RemoteHost,
+		Host:   config.Config.RemoteHosts[0],
 		Path:   fmt.Sprintf("/endpoint/%s/comm", config.Config.Id),
 	}
 
@@ -268,10 +268,36 @@ func (s *Stream) Conn() (err error) {
 			recover()
 		}()
 		for {
-			_, _, err := conn.NextReader()
+			msgType, msgByte, err := conn.ReadMessage()
 			if err != nil {
-				conn.Close()
+				err = &errortypes.ReadError{
+					errors.Wrap(err, "stream: Failed to read message"),
+				}
+
+				logrus.WithFields(logrus.Fields{
+					"error": err,
+				}).Error("stream: Failed to read message")
+
+				_ = conn.Close()
 				return
+			}
+
+			if msgType == websocket.TextMessage {
+				conf := &Conf{}
+				err = json.Unmarshal(msgByte, conf)
+				if err != nil {
+					err = &errortypes.ParseError{
+						errors.Wrap(err, "stream: Failed to parse conf"),
+					}
+
+					logrus.WithFields(logrus.Fields{
+						"error": err,
+					}).Error("stream: Failed to parse conf")
+
+					err = nil
+				}
+
+				CurrentConf = conf
 			}
 		}
 	}()
@@ -370,7 +396,7 @@ func (s *Stream) Run() {
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"error": err,
-			}).Error("stream: Stream conn error")
+			}).Error("stream: stream conn error")
 		}
 
 		s.RecoverBuffer()
