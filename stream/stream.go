@@ -183,6 +183,40 @@ func (s *Stream) WriteDoc(conn *websocket.Conn, doc Doc) (err error) {
 	return
 }
 
+func (s *Stream) LoadConf(encData []byte) (err error) {
+	if len(encData) < 32 {
+		err = &errortypes.ParseError{
+			errors.Newf("stream: Conf data too short (%d)", len(encData)),
+		}
+		return
+	}
+
+	var nonceAr [24]byte
+	copy(nonceAr[:], encData[:24])
+
+	confData, valid := box.Open([]byte{}, encData[24:],
+		&nonceAr, &s.serverPubKey, &s.clientPrivKey)
+	if !valid {
+		err = &errortypes.ParseError{
+			errors.New("stream: Failed to decrypt conf data"),
+		}
+		return
+	}
+
+	conf := &Conf{}
+	err = json.Unmarshal(confData, conf)
+	if err != nil {
+		err = &errortypes.ParseError{
+			errors.Wrap(err, "stream: Failed to unmarshal conf"),
+		}
+		return
+	}
+
+	CurrentConf = conf
+
+	return
+}
+
 func (s *Stream) Conn() (err error) {
 	streamUrl := &url.URL{
 		Scheme: "wss",
@@ -283,21 +317,13 @@ func (s *Stream) Conn() (err error) {
 			}
 
 			if msgType == websocket.TextMessage {
-				conf := &Conf{}
-				err = json.Unmarshal(msgByte, conf)
+				err = s.LoadConf(msgByte)
 				if err != nil {
-					err = &errortypes.ParseError{
-						errors.Wrap(err, "stream: Failed to parse conf"),
-					}
-
 					logrus.WithFields(logrus.Fields{
 						"error": err,
-					}).Error("stream: Failed to parse conf")
-
+					}).Error("stream: Failed to load conf")
 					err = nil
 				}
-
-				CurrentConf = conf
 			}
 		}
 	}()
