@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/dropbox/godropbox/errors"
+	"github.com/pritunl/pritunl-endpoint/constants"
 	"github.com/pritunl/pritunl-endpoint/dnf"
 	"github.com/pritunl/pritunl-endpoint/errortypes"
 	"github.com/pritunl/pritunl-endpoint/input"
@@ -111,6 +112,7 @@ func Handler(stream *stream.Stream) (err error) {
 	}
 
 	doc := &System{
+		Version:        constants.Version,
 		Hostname:       info.Hostname,
 		Uptime:         info.Uptime,
 		Virtualization: virt,

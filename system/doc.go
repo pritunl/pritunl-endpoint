@@ -13,6 +13,7 @@ const (
 type System struct {
 	Timestamp time.Time `json:"t"`
 
+	Version        string              `json:"ev"`
 	Hostname       string              `json:"h"`
 	Uptime         uint64              `json:"u"`
 	Virtualization string              `json:"v"`
