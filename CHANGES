@@ -1,6 +1,10 @@
 pritunl-endpoint changelog
 ==========================
 
+<%= version %>
+
+Fix dnf update check
+
 Version 1.0.2495.69 2022-09-23
 ------------------------------
 
