@@ -71,7 +71,7 @@ func CheckUpdate() (count int, err error) {
 	count = 0
 	for _, line := range strings.Split(output, "\n") {
 		line = strings.TrimSpace(line)
-		if line == "" {
+		if line == "" || strings.Contains(line, ".src") {
 			continue
 		}
 
