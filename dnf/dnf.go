@@ -75,7 +75,9 @@ func CheckUpdate() (count int, err error) {
 			continue
 		}
 
-		if strings.Contains(line, "Obsoleting Packages") {
+		if strings.Contains(line, "Obsoleting Packages") ||
+			strings.Contains(line, "Security:") {
+
 			break
 		}
 
