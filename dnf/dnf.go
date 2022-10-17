@@ -16,6 +16,20 @@ var (
 	isDnfCached     = false
 )
 
+func GetYumPath() (pth string, err error) {
+	exists, err := utils.ExistsFile("/usr/bin/yum")
+	if err != nil {
+		return
+	}
+
+	if exists {
+		pth = "/usr/bin/yum"
+		return
+	}
+
+	return
+}
+
 func GetDnfPath() (pth string, err error) {
 	exists, err := utils.ExistsFile("/usr/bin/dnf")
 	if err != nil {
@@ -24,16 +38,6 @@ func GetDnfPath() (pth string, err error) {
 
 	if exists {
 		pth = "/usr/bin/dnf"
-		return
-	}
-
-	exists, err = utils.ExistsFile("/usr/bin/yum")
-	if err != nil {
-		return
-	}
-
-	if exists {
-		pth = "/usr/bin/yum"
 		return
 	}
 
@@ -54,7 +58,58 @@ func GetRepoQueryPath() (pth string, err error) {
 	return
 }
 
-func CheckUpdate() (count int, err error) {
+func checkUpdateYum() (count int, err error) {
+	yumPth, err := GetYumPath()
+	if err != nil {
+		return
+	}
+
+	if yumPth == "" {
+		return
+	}
+
+	output, exitCode, err := utils.ExecOutputCode(
+		yumPth, "check-update", "-q")
+	if err != nil {
+		return
+	}
+
+	if exitCode == 0 {
+		return
+	} else if exitCode != 100 {
+		err = &errortypes.ExecError{
+			errors.Newf(
+				"dnf: Bad exit code %d from dnf check update",
+				exitCode,
+			),
+		}
+		return
+	}
+
+	count = 0
+	for _, line := range strings.Split(output, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.Contains(line, ".src") ||
+			strings.Contains(line, "Update notice") ||
+			strings.Contains(line, "You should report") ||
+			strings.Contains(line, "To help pinpoint") {
+
+			continue
+		}
+
+		if strings.Contains(line, "Obsoleting Packages") ||
+			strings.Contains(line, "Security:") {
+
+			break
+		}
+
+		count += 1
+	}
+
+	return
+}
+
+func checkUpdateDnf() (count int, err error) {
 	rqPth, err := GetRepoQueryPath()
 	if err != nil {
 		return
@@ -93,6 +148,17 @@ func CheckUpdate() (count int, err error) {
 	return
 }
 
+func CheckUpdate() (count int, err error) {
+	pth, _ := GetDnfPath()
+	if pth != "" {
+		count, err = checkUpdateDnf()
+	} else {
+		count, err = checkUpdateYum()
+	}
+
+	return
+}
+
 func CheckUpdateCached() (count int, err error) {
 	if time.Since(lastUpdateTime) < 1*time.Hour {
 		count = lastUpdateCount
@@ -115,7 +181,10 @@ func IsDnf() bool {
 		return isDnf
 	}
 
-	pth, _ := GetRepoQueryPath()
+	pth, _ := GetYumPath()
+	if pth == "" {
+		pth, _ = GetDnfPath()
+	}
 
 	if pth != "" {
 		isDnf = true
