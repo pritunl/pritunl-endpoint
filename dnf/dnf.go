@@ -40,28 +40,40 @@ func GetDnfPath() (pth string, err error) {
 	return
 }
 
-func CheckUpdate() (count int, err error) {
-	dnfPth, err := GetDnfPath()
+func GetRepoQueryPath() (pth string, err error) {
+	exists, err := utils.ExistsFile("/usr/bin/repoquery")
 	if err != nil {
 		return
 	}
 
-	if dnfPth == "" {
+	if exists {
+		pth = "/usr/bin/repoquery"
+		return
+	}
+
+	return
+}
+
+func CheckUpdate() (count int, err error) {
+	rqPth, err := GetRepoQueryPath()
+	if err != nil {
+		return
+	}
+
+	if rqPth == "" {
 		return
 	}
 
 	output, exitCode, err := utils.ExecOutputCode(
-		dnfPth, "check-update", "-q")
+		rqPth, "--upgrades", "--quiet")
 	if err != nil {
 		return
 	}
 
-	if exitCode == 0 {
-		return
-	} else if exitCode != 100 {
+	if exitCode != 0 {
 		err = &errortypes.ExecError{
 			errors.Newf(
-				"dnf: Bad exit code %d from dnf check update",
+				"dnf: Bad exit code %d from repoquery check update",
 				exitCode,
 			),
 		}
@@ -73,12 +85,6 @@ func CheckUpdate() (count int, err error) {
 		line = strings.TrimSpace(line)
 		if line == "" || strings.Contains(line, ".src") {
 			continue
-		}
-
-		if strings.Contains(line, "Obsoleting Packages") ||
-			strings.Contains(line, "Security:") {
-
-			break
 		}
 
 		count += 1
@@ -109,7 +115,7 @@ func IsDnf() bool {
 		return isDnf
 	}
 
-	pth, _ := GetDnfPath()
+	pth, _ := GetRepoQueryPath()
 
 	if pth != "" {
 		isDnf = true
