@@ -13,6 +13,7 @@ import (
 	"github.com/pritunl/pritunl-endpoint/utils"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/host"
+	"github.com/sirupsen/logrus"
 )
 
 func getCpu() (cores int, usage float64, err error) {
@@ -107,7 +108,10 @@ func Handler(stream *stream.Stream) (err error) {
 	if dnf.IsDnf() {
 		dnfCount, err = dnf.CheckUpdateCached()
 		if err != nil {
-			return
+			logrus.WithFields(logrus.Fields{
+				"error": err,
+			}).Error("system: Update check error")
+			err = nil
 		}
 	}
 
