@@ -1,6 +1,10 @@
 pritunl-endpoint changelog
 ==========================
 
+<%= version %>
+
+Improve system information
+
 Version 1.0.2518.43 2022-10-16
 ------------------------------
 
