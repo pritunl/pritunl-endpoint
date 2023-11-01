@@ -1,7 +1,8 @@
 pritunl-endpoint changelog
 ==========================
 
-<%= version %>
+Version 1.0.2899.20 2023-11-01
+------------------------------
 
 Update libraries
 
